@@ -3,33 +3,41 @@ const app = require("./app");
 const config = require("./config/config");
 const logger = require("./config/logger");
 
-// My Local IP Address
-const myIp = process.env.BACKEND_IP;
-
 let server;
-mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
-  logger.info("Connected to MongoDB");
-  server = app.listen(config.port, myIp, () => {
-    // logger.info(`Listening to port ${config.port}`);
-    logger.info(`Listening to ip http://${myIp}:${config.port}`);
-  });
 
-  //initializing socket io
-  const socketIo = require("socket.io");
-  const socketIO = require("./utils/socketIO");
-  const io = socketIo(server, {
-    cors: {
-      origin: "*"
-    },
-  });
+// Connect to MongoDB
+mongoose
+  .connect(config.mongoose.url, config.mongoose.options)
+  .then(() => {
+    logger.info("Connected to MongoDB");
 
-  socketIO(io);
+    // Only start standalone HTTP server when NOT running inside Vercel serverless
+    if (!process.env.VERCEL) {
+      const host = process.env.BACKEND_IP || "0.0.0.0";
+      server = app.listen(config.port, host, () => {
+        logger.info(`Listening to http://${host}:${config.port}`);
+      });
 
-  global.io = io;
-  server.listen(config.port, process.env.BACKEND_IP, () => {
-    // logger.info(`Socket IO listening to port ${config.port}`);
+      // Initializing socket.io
+      try {
+        const socketIo = require("socket.io");
+        const socketIO = require("./utils/socketIO");
+        const io = socketIo(server, {
+          cors: {
+            origin: "*",
+          },
+        });
+
+        socketIO(io);
+        global.io = io;
+      } catch (err) {
+        logger.warn("Socket.io initialization skipped:", err.message);
+      }
+    }
+  })
+  .catch((err) => {
+    logger.error("MongoDB connection failed:", err.message);
   });
-});
 
 const exitHandler = () => {
   if (server) {
@@ -56,3 +64,6 @@ process.on("SIGTERM", () => {
     server.close();
   }
 });
+
+// Export app for Vercel (@vercel/node)
+module.exports = app;
