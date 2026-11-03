@@ -57,6 +57,16 @@ if (config.env === "production") {
 // Express Monitor
 app.use(status());
 
+// Health check root endpoint
+app.get("/", (req, res) => {
+  res.status(200).json({
+    status: "success",
+    message: "Niger Today Backend API is running successfully!",
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // v1 api routes
 app.use("/api/v1", routes);
 

@@ -1,23 +1,68 @@
 const nodemailer = require("nodemailer");
+const axios = require("axios");
 const config = require("../config/config");
 const logger = require("../config/logger");
 
-const transport = nodemailer.createTransport(config.email.smtp);
+const transport = nodemailer.createTransport({
+  ...config.email.smtp,
+  connectionTimeout: 6000,
+  greetingTimeout: 6000,
+  socketTimeout: 6000,
+});
+
 /* istanbul ignore next */
-if (config.env !== "test") {
+if (config.env !== "test" && !process.env.RESEND_API_KEY) {
   transport
     .verify()
-    .then(() => logger.info("Connected to email server"))
+    .then(() => logger.info("Connected to email server via SMTP"))
     .catch((err) =>
       logger.warn(
-        `Unable to connect to email server: ${err.message || err}`,
+        `Unable to connect to email server: ${err.message || err}. (Note: Render free tier blocks outbound SMTP ports 465/587. Use RESEND_API_KEY for instant HTTPS delivery).`,
       ),
     );
 }
 
 const sendEmail = async (to, subject, html, text) => {
-  const msg = { from: config.email.from, to, subject, html, text };
-  await transport.sendMail(msg);
+  // If RESEND_API_KEY is configured, send via Resend HTTPS API (never blocked by Render / cloud hosts)
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const fromEmail = process.env.RESEND_FROM || "onboarding@resend.dev";
+      const res = await axios.post(
+        "https://api.resend.com/emails",
+        {
+          from: fromEmail,
+          to: Array.isArray(to) ? to : [to],
+          subject,
+          html,
+          text,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          timeout: 10000,
+        }
+      );
+      logger.info(`Email sent via Resend API to ${to}. Id: ${res.data?.id}`);
+      return res.data;
+    } catch (err) {
+      const errMsg = err.response?.data?.message || err.message;
+      logger.error(`Resend API error sending to ${to}: ${errMsg}`);
+      throw new Error(`Failed to send email: ${errMsg}`);
+    }
+  }
+
+  // Fallback to Nodemailer SMTP
+  try {
+    const msg = { from: config.email.from, to, subject, html, text };
+    const info = await transport.sendMail(msg);
+    logger.info(`Email sent successfully to ${to}. MessageId: ${info.messageId}`);
+    return info;
+  } catch (error) {
+    logger.error(`Error sending email to ${to}: ${error.message}`);
+    throw error;
+  }
 };
 
 /**
