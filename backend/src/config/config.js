@@ -58,7 +58,7 @@ module.exports = {
       secure: Number(envVars.SMTP_PORT) === 465,
       auth: {
         user: envVars.SMTP_USERNAME,
-        pass: envVars.SMTP_PASSWORD,
+        pass: envVars.SMTP_PASSWORD ? envVars.SMTP_PASSWORD.replace(/\s+/g, '') : '',
       },
       tls: {
         rejectUnauthorized: false,
