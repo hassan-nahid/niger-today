@@ -1,6 +1,7 @@
 import React, { Suspense } from "react";
 import { createBrowserRouter, Navigate } from "react-router";
 import { ProtectedRoute } from "../components/ProtectedRoute";
+import { PublicRoute } from "../components/PublicRoute";
 import { AppLayout } from "../components/layout/AppLayout";
 
 // Code Splitting with React.lazy
@@ -39,20 +40,25 @@ const withSuspense = (Component: React.ComponentType) => (
 
 export const router = createBrowserRouter([
   {
-    path: "/login",
-    element: withSuspense(Login),
-  },
-  {
-    path: "/register",
-    element: withSuspense(Register),
-  },
-  {
-    path: "/verify-email",
-    element: withSuspense(VerifyEmail),
-  },
-  {
-    path: "/forgot-password",
-    element: withSuspense(ForgotPassword),
+    element: <PublicRoute />,
+    children: [
+      {
+        path: "/login",
+        element: withSuspense(Login),
+      },
+      {
+        path: "/register",
+        element: withSuspense(Register),
+      },
+      {
+        path: "/verify-email",
+        element: withSuspense(VerifyEmail),
+      },
+      {
+        path: "/forgot-password",
+        element: withSuspense(ForgotPassword),
+      },
+    ],
   },
   {
     path: "/",

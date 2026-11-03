@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, Navigate } from "react-router";
 import { useAuth } from "../hooks/useAuth";
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
 import axios from "axios";
@@ -7,8 +7,13 @@ import logoSvg from "../assets/niger-today-logo.svg";
 import heroImg from "../assets/login-hero.png";
 
 export const Register: React.FC = () => {
-  const { register } = useAuth();
+  const { register, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
+
+  // If already authenticated, redirect immediately to dashboard
+  if (isAuthenticated && !isLoading) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const [formData, setFormData] = useState({
     firstName: "",
