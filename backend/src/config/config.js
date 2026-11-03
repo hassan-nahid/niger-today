@@ -54,10 +54,14 @@ module.exports = {
   email: {
     smtp: {
       host: envVars.SMTP_HOST,
-      port: envVars.SMTP_PORT,
+      port: Number(envVars.SMTP_PORT) || 587,
+      secure: Number(envVars.SMTP_PORT) === 465,
       auth: {
         user: envVars.SMTP_USERNAME,
         pass: envVars.SMTP_PASSWORD,
+      },
+      tls: {
+        rejectUnauthorized: false,
       },
     },
     from: envVars.EMAIL_FROM,
