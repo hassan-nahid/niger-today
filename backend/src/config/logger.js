@@ -8,17 +8,6 @@ const enumerateErrorFormat = winston.format((info) => {
   return info;
 });
 
-const transports = [
-  new winston.transports.Console({
-    stderrLevels: ['error'],
-  }),
-];
-
-// File logging is only for local dev. On Vercel/Serverless, the filesystem is read-only (EROFS).
-if (!process.env.VERCEL && config.env !== 'production') {
-  transports.push(new winston.transports.File({ filename: 'app.log' }));
-}
-
 const logger = winston.createLogger({
   level: config.env === 'development' ? 'debug' : 'info',
   format: winston.format.combine(
@@ -27,8 +16,15 @@ const logger = winston.createLogger({
     winston.format.splat(),
     winston.format.timestamp({ format: 'YYYY-MM-DDTHH:mm:ss.SSSZ' }), // Add timestamp format
     winston.format.printf(({ timestamp, level, message }) => `[${level}] ${message}`) // Modify printf format
+    //winston.format.printf(({ timestamp, level, message }) => `${timestamp} [${level}] ${message}`) // Modify printf format
+    // winston.format.printf(({ level, message }) => `${level}: ${message}`)
   ),
-  transports,
+  transports: [
+    new winston.transports.Console({
+      stderrLevels: ['error'],
+    }),
+    new winston.transports.File({ filename: 'app.log' }) // Add this line
+  ],
 });
 
 module.exports = logger;

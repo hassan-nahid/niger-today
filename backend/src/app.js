@@ -54,19 +54,8 @@ if (config.env === "production") {
   app.use("/v1/auth", authLimiter);
 }
 
-// Express Monitor (only in local development)
-if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
-  app.use(status());
-}
-
-// Health check root endpoint
-app.get("/", (req, res) => {
-  res.status(200).json({
-    status: "success",
-    message: "Niger Today Backend API is running successfully!",
-    version: "1.0.0",
-  });
-});
+// Express Monitor
+app.use(status());
 
 // v1 api routes
 app.use("/api/v1", routes);
