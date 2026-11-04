@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router";
 import { useCustomerContext } from "../context/CustomerContext";
 import { StatusBadge } from "../components/shared/StatusBadge";
 import { EmptyState } from "../components/shared/EmptyState";
+import { PageHeader } from "../components/shared/PageHeader";
 import iconSearch from "../assets/icons/icon-search.svg";
 import iconPlus from "../assets/icons/icon-plus.svg";
 
@@ -55,48 +56,19 @@ export const Customers: React.FC = () => {
       {/* DESKTOP LAYOUT (FIGMA 03 Customers - 1440x900)           */}
       {/* ======================================================== */}
       <div className="hidden lg:block px-10 py-8 space-y-6 max-w-[1440px]">
-        {/* Top Bar (Figma 1:354: Heading + Search + Add Customer) */}
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-[26px] font-bold text-[#0F172A] tracking-tight leading-tight">
-              Customers
-            </h1>
-            <p className="text-sm text-[#64748B] mt-1">
-              {stats.total === 0
-                ? "0 customers"
-                : `${stats.total} customers · Manage subscriptions and renewals`}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Search Input (Figma: 300px width, 42px height) */}
-            <div className="relative w-80">
-              <img
-                src={iconSearch}
-                alt=""
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]"
-              />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search name, phone or email"
-                className="w-full h-[42px] rounded-[10px] border border-[#E2E8F0] bg-white pl-10 pr-3.5 text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:border-[#4F46E5] focus:outline-none focus:ring-1 focus:ring-[#4F46E5] transition-all shadow-2xs"
-              />
-            </div>
-
-            {/* Add Customer Button in Top Bar (shown only when customers exist; otherwise shown in Empty State) */}
-            {stats.total > 0 && (
-              <button
-                onClick={() => navigate("/customers/new")}
-                className="h-[42px] px-4 rounded-[10px] bg-[#4F46E5] hover:bg-[#4338CA] text-white text-sm font-semibold flex items-center gap-2 cursor-pointer transition-all shadow-sm active:scale-[0.99]"
-              >
-                <img src={iconPlus} alt="" className="w-4 h-4 brightness-0 invert" />
-                <span>Add Customer</span>
-              </button>
-            )}
-          </div>
-        </div>
+        {/* Top Bar (Reusable PageHeader matching Figma 02 Dashboard & 03 Customers) */}
+        <PageHeader
+          title="Customers"
+          subtitle={
+            stats.total === 0
+              ? "0 customers"
+              : `${stats.total} customers · Manage subscriptions and renewals`
+          }
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          showAddButton={stats.total > 0}
+          onAddClick={() => navigate("/customers/new")}
+        />
 
         {/* Filter Tabs (shown when customers exist) */}
         {stats.total > 0 && (

@@ -2,10 +2,9 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router";
 import { useCustomerContext } from "../context/CustomerContext";
 import { useAuth } from "../hooks/useAuth";
+import { PageHeader } from "../components/shared/PageHeader";
 
 // Exact Figma SVGs
-import iconSearch from "../assets/icons/icon-search.svg";
-import iconPlus from "../assets/icons/icon-plus.svg";
 import iconBannerAlert from "../assets/icons/icon-banner-alert.svg";
 import statUsers from "../assets/icons/stat-users.svg";
 import statCheck from "../assets/icons/stat-check.svg";
@@ -16,11 +15,7 @@ import iconMessage from "../assets/icons/icon-message.svg";
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const {
-    customers,
-    stats,
-    setActiveRemindingCustomer,
-  } = useCustomerContext();
+  const { customers, stats, setActiveRemindingCustomer } = useCustomerContext();
   const [searchTerm, setSearchTerm] = useState("");
 
   const expiringCustomers = customers
@@ -28,6 +23,7 @@ export const Dashboard: React.FC = () => {
     .sort((a, b) => a.daysRemaining - b.daysRemaining);
 
   const expiredCustomers = customers.filter((c) => c.status === "expired");
+  const attentionCount = stats.expiring + stats.expired;
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,46 +32,24 @@ export const Dashboard: React.FC = () => {
     }
   };
 
+  const handleAddCustomer = () => navigate("/customers/new");
+
   return (
     <div className="w-full">
       {/* ======================================================== */}
       {/* DESKTOP DASHBOARD (FIGMA 02 Dashboard - EXACT 1440x900)  */}
       {/* ======================================================== */}
-      <div className="hidden lg:block p-8 lg:p-10 max-w-[1240px] space-y-6 bg-[#F8FAFC]">
-        {/* Top bar (Figma: height 62px) */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-[28px] font-bold text-[#0F172A] tracking-tight">Dashboard</h1>
-            <p className="text-sm text-[#64748B] mt-0.5">
-              Monday, October 5, 2026 · Here is who needs your attention today
-            </p>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <form onSubmit={handleSearchSubmit} className="relative w-[300px]">
-              <img
-                src={iconSearch}
-                alt="search"
-                className="absolute left-3.5 top-3.5 w-[18px] h-[18px]"
-              />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search name, phone or email"
-                className="w-full h-[46px] rounded-xl border border-[#CBD5E1] bg-white pl-10 pr-3.5 text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:border-[#4F46E5] focus:outline-none focus:ring-1 focus:ring-[#4F46E5] shadow-2xs"
-              />
-            </form>
-
-            <button
-              onClick={() => navigate("/customers/new")}
-              className="h-[46px] px-5 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-sm hover:shadow"
-            >
-              <img src={iconPlus} alt="add" className="w-[18px] h-[18px]" />
-              Add Customer
-            </button>
-          </div>
-        </div>
+      <div className="hidden lg:block px-10 py-8 space-y-6 max-w-[1440px]">
+        {/* Top bar (Reusable PageHeader matching Figma 02 Dashboard & 03 Customers) */}
+        <PageHeader
+          title="Dashboard"
+          subtitle="Monday, October 5, 2026 · Here is who needs your attention today"
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          onSearchSubmit={handleSearchSubmit}
+          showAddButton={stats.total > 0}
+          onAddClick={handleAddCustomer}
+        />
 
         {/* Attention Banner (Figma: height 64px, bg #FFFBEB, border #FDE68A) */}
         <div className="flex items-center justify-between rounded-2xl border border-[#FDE68A] bg-[#FFFBEB] px-5 py-4 shadow-xs">
@@ -84,7 +58,8 @@ export const Dashboard: React.FC = () => {
               <img src={iconBannerAlert} alt="alert" className="w-5 h-5" />
             </div>
             <p className="text-sm font-medium text-[#92400E]">
-              <span className="font-bold">6 customers</span> need your attention — 4 expire within 10 days and 2 have already expired.
+              <span className="font-bold">{attentionCount} customers</span> need your attention
+              — {stats.expiring} expire within 10 days and {stats.expired} have already expired.
             </p>
           </div>
 
@@ -107,10 +82,16 @@ export const Dashboard: React.FC = () => {
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#F1F5F9]">
                 <img src={statUsers} alt="users" className="w-4 h-4" />
               </div>
-              <span className="text-[13px] font-medium text-[#64748B]">Total customers</span>
+              <span className="text-[13px] font-medium text-[#64748B]">
+                Total customers
+              </span>
             </div>
-            <div className="text-[36px] font-bold text-[#0F172A] leading-none">30</div>
-            <div className="text-[13px] text-[#64748B]">All saved customers</div>
+            <div className="text-[36px] font-bold text-[#0F172A] leading-none">
+              {stats.total}
+            </div>
+            <div className="text-[13px] text-[#64748B]">
+              All saved customers
+            </div>
           </div>
 
           {/* Card 2: Active (stat-check.svg) */}
@@ -122,10 +103,16 @@ export const Dashboard: React.FC = () => {
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#DCFCE7]">
                 <img src={statCheck} alt="active" className="w-4 h-4" />
               </div>
-              <span className="text-[13px] font-medium text-[#64748B]">Active</span>
+              <span className="text-[13px] font-medium text-[#64748B]">
+                Active
+              </span>
             </div>
-            <div className="text-[36px] font-bold text-[#16A34A] leading-none">24</div>
-            <div className="text-[13px] text-[#64748B]">More than 10 days left</div>
+            <div className="text-[36px] font-bold text-[#16A34A] leading-none">
+              {stats.active}
+            </div>
+            <div className="text-[13px] text-[#64748B]">
+              More than 10 days left
+            </div>
           </div>
 
           {/* Card 3: Expiring soon (stat-clock.svg) */}
@@ -137,10 +124,16 @@ export const Dashboard: React.FC = () => {
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#FEF3C7]">
                 <img src={statClock} alt="expiring" className="w-4 h-4" />
               </div>
-              <span className="text-[13px] font-medium text-[#64748B]">Expiring soon</span>
+              <span className="text-[13px] font-medium text-[#64748B]">
+                Expiring soon
+              </span>
             </div>
-            <div className="text-[36px] font-bold text-[#D97706] leading-none">4</div>
-            <div className="text-[13px] text-[#64748B]">Within the next 10 days</div>
+            <div className="text-[36px] font-bold text-[#D97706] leading-none">
+              {stats.expiring}
+            </div>
+            <div className="text-[13px] text-[#64748B]">
+              Within the next 10 days
+            </div>
           </div>
 
           {/* Card 4: Expired (stat-alert.svg) */}
@@ -152,9 +145,13 @@ export const Dashboard: React.FC = () => {
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#FEE2E2]">
                 <img src={statAlert} alt="expired" className="w-4 h-4" />
               </div>
-              <span className="text-[13px] font-medium text-[#64748B]">Expired</span>
+              <span className="text-[13px] font-medium text-[#64748B]">
+                Expired
+              </span>
             </div>
-            <div className="text-[36px] font-bold text-[#DC2626] leading-none">2</div>
+            <div className="text-[36px] font-bold text-[#DC2626] leading-none">
+              {stats.expired}
+            </div>
             <div className="text-[13px] text-[#64748B]">Follow up to renew</div>
           </div>
         </div>
@@ -164,7 +161,9 @@ export const Dashboard: React.FC = () => {
           {/* Expiring Soon (Takes 8 cols) */}
           <div className="col-span-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
             <div className="mb-5">
-              <h2 className="text-lg font-bold text-[#0F172A]">Expiring Soon</h2>
+              <h2 className="text-lg font-bold text-[#0F172A]">
+                Expiring Soon
+              </h2>
               <p className="text-[13px] text-[#64748B]">Sorted by days left</p>
             </div>
             <div className="overflow-x-auto">
@@ -185,10 +184,14 @@ export const Dashboard: React.FC = () => {
                         <div className="h-9 w-9 rounded-full bg-[#E0E7FF] text-[#4338CA] flex items-center justify-center font-bold text-xs shrink-0">
                           JS
                         </div>
-                        <span className="font-semibold text-[#0F172A] text-sm">John Smith</span>
+                        <span className="font-semibold text-[#0F172A] text-sm">
+                          John Smith
+                        </span>
                       </div>
                     </td>
-                    <td className="py-3 px-2 font-medium text-[#334155] text-sm">Oct 8</td>
+                    <td className="py-3 px-2 font-medium text-[#334155] text-sm">
+                      Oct 8
+                    </td>
                     <td className="py-3 px-2">
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FEF3C7] text-[#B45309]">
                         <span className="h-1.5 w-1.5 rounded-full bg-[#D97706]" />
@@ -197,10 +200,18 @@ export const Dashboard: React.FC = () => {
                     </td>
                     <td className="py-3 px-2 text-right">
                       <button
-                        onClick={() => setActiveRemindingCustomer(expiringCustomers[0] || null)}
+                        onClick={() =>
+                          setActiveRemindingCustomer(
+                            expiringCustomers[0] || null,
+                          )
+                        }
                         className="h-[34px] px-3 py-[7px] rounded-[10px] bg-[#EEF2FF] hover:bg-[#E0E7FF] text-[#4338CA] text-sm font-semibold inline-flex items-center gap-2 transition-colors cursor-pointer shadow-2xs"
                       >
-                        <img src={iconMessage} alt="message" className="w-4 h-4 shrink-0" />
+                        <img
+                          src={iconMessage}
+                          alt="message"
+                          className="w-4 h-4 shrink-0"
+                        />
                         <span>Send Reminder</span>
                       </button>
                     </td>
@@ -213,10 +224,14 @@ export const Dashboard: React.FC = () => {
                         <div className="h-9 w-9 rounded-full bg-[#E0E7FF] text-[#4338CA] flex items-center justify-center font-bold text-xs shrink-0">
                           MB
                         </div>
-                        <span className="font-semibold text-[#0F172A] text-sm">Michael Brown</span>
+                        <span className="font-semibold text-[#0F172A] text-sm">
+                          Michael Brown
+                        </span>
                       </div>
                     </td>
-                    <td className="py-3 px-2 font-medium text-[#334155] text-sm">Oct 12</td>
+                    <td className="py-3 px-2 font-medium text-[#334155] text-sm">
+                      Oct 12
+                    </td>
                     <td className="py-3 px-2">
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FEF3C7] text-[#B45309]">
                         <span className="h-1.5 w-1.5 rounded-full bg-[#D97706]" />
@@ -225,10 +240,18 @@ export const Dashboard: React.FC = () => {
                     </td>
                     <td className="py-3 px-2 text-right">
                       <button
-                        onClick={() => setActiveRemindingCustomer(expiringCustomers[1] || null)}
+                        onClick={() =>
+                          setActiveRemindingCustomer(
+                            expiringCustomers[1] || null,
+                          )
+                        }
                         className="h-[34px] px-3 py-[7px] rounded-[10px] bg-[#EEF2FF] hover:bg-[#E0E7FF] text-[#4338CA] text-sm font-semibold inline-flex items-center gap-2 transition-colors cursor-pointer shadow-2xs"
                       >
-                        <img src={iconMessage} alt="message" className="w-4 h-4 shrink-0" />
+                        <img
+                          src={iconMessage}
+                          alt="message"
+                          className="w-4 h-4 shrink-0"
+                        />
                         <span>Send Reminder</span>
                       </button>
                     </td>
@@ -241,10 +264,14 @@ export const Dashboard: React.FC = () => {
                         <div className="h-9 w-9 rounded-full bg-[#E0E7FF] text-[#4338CA] flex items-center justify-center font-bold text-xs shrink-0">
                           DL
                         </div>
-                        <span className="font-semibold text-[#0F172A] text-sm">David Lee</span>
+                        <span className="font-semibold text-[#0F172A] text-sm">
+                          David Lee
+                        </span>
                       </div>
                     </td>
-                    <td className="py-3 px-2 font-medium text-[#334155] text-sm">Oct 15</td>
+                    <td className="py-3 px-2 font-medium text-[#334155] text-sm">
+                      Oct 15
+                    </td>
                     <td className="py-3 px-2">
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FEF3C7] text-[#B45309]">
                         <span className="h-1.5 w-1.5 rounded-full bg-[#D97706]" />
@@ -253,10 +280,18 @@ export const Dashboard: React.FC = () => {
                     </td>
                     <td className="py-3 px-2 text-right">
                       <button
-                        onClick={() => setActiveRemindingCustomer(expiringCustomers[2] || null)}
+                        onClick={() =>
+                          setActiveRemindingCustomer(
+                            expiringCustomers[2] || null,
+                          )
+                        }
                         className="h-[34px] px-3 py-[7px] rounded-[10px] bg-[#EEF2FF] hover:bg-[#E0E7FF] text-[#4338CA] text-sm font-semibold inline-flex items-center gap-2 transition-colors cursor-pointer shadow-2xs"
                       >
-                        <img src={iconMessage} alt="message" className="w-4 h-4 shrink-0" />
+                        <img
+                          src={iconMessage}
+                          alt="message"
+                          className="w-4 h-4 shrink-0"
+                        />
                         <span>Send Reminder</span>
                       </button>
                     </td>
@@ -269,10 +304,14 @@ export const Dashboard: React.FC = () => {
                         <div className="h-9 w-9 rounded-full bg-[#E0E7FF] text-[#4338CA] flex items-center justify-center font-bold text-xs shrink-0">
                           PD
                         </div>
-                        <span className="font-semibold text-[#0F172A] text-sm">Priya Das</span>
+                        <span className="font-semibold text-[#0F172A] text-sm">
+                          Priya Das
+                        </span>
                       </div>
                     </td>
-                    <td className="py-3 px-2 font-medium text-[#334155] text-sm">Oct 15</td>
+                    <td className="py-3 px-2 font-medium text-[#334155] text-sm">
+                      Oct 15
+                    </td>
                     <td className="py-3 px-2">
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FEF3C7] text-[#B45309]">
                         <span className="h-1.5 w-1.5 rounded-full bg-[#D97706]" />
@@ -281,10 +320,18 @@ export const Dashboard: React.FC = () => {
                     </td>
                     <td className="py-3 px-2 text-right">
                       <button
-                        onClick={() => setActiveRemindingCustomer(expiringCustomers[3] || null)}
+                        onClick={() =>
+                          setActiveRemindingCustomer(
+                            expiringCustomers[3] || null,
+                          )
+                        }
                         className="h-[34px] px-3 py-[7px] rounded-[10px] bg-[#EEF2FF] hover:bg-[#E0E7FF] text-[#4338CA] text-sm font-semibold inline-flex items-center gap-2 transition-colors cursor-pointer shadow-2xs"
                       >
-                        <img src={iconMessage} alt="message" className="w-4 h-4 shrink-0" />
+                        <img
+                          src={iconMessage}
+                          alt="message"
+                          className="w-4 h-4 shrink-0"
+                        />
                         <span>Send Reminder</span>
                       </button>
                     </td>
@@ -298,7 +345,9 @@ export const Dashboard: React.FC = () => {
           <div className="col-span-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs flex flex-col justify-between">
             <div>
               <div className="mb-5">
-                <h2 className="text-lg font-bold text-[#0F172A]">Recently Expired</h2>
+                <h2 className="text-lg font-bold text-[#0F172A]">
+                  Recently Expired
+                </h2>
                 <p className="text-[13px] text-[#64748B]">Renew or follow up</p>
               </div>
 
@@ -310,12 +359,18 @@ export const Dashboard: React.FC = () => {
                       RH
                     </div>
                     <div>
-                      <div className="text-sm font-semibold text-[#0F172A]">Robert Hall</div>
-                      <div className="text-xs text-[#DC2626] font-medium">Expired 2 days ago</div>
+                      <div className="text-sm font-semibold text-[#0F172A]">
+                        Robert Hall
+                      </div>
+                      <div className="text-xs text-[#DC2626] font-medium">
+                        Expired 2 days ago
+                      </div>
                     </div>
                   </div>
                   <button
-                    onClick={() => setActiveRemindingCustomer(expiredCustomers[0] || null)}
+                    onClick={() =>
+                      setActiveRemindingCustomer(expiredCustomers[0] || null)
+                    }
                     className="h-9 px-3.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold text-[#334155] hover:bg-slate-50 transition-colors cursor-pointer"
                   >
                     Message
@@ -329,12 +384,18 @@ export const Dashboard: React.FC = () => {
                       JC
                     </div>
                     <div>
-                      <div className="text-sm font-semibold text-[#0F172A]">James Cole</div>
-                      <div className="text-xs text-[#DC2626] font-medium">Expired 5 days ago</div>
+                      <div className="text-sm font-semibold text-[#0F172A]">
+                        James Cole
+                      </div>
+                      <div className="text-xs text-[#DC2626] font-medium">
+                        Expired 5 days ago
+                      </div>
                     </div>
                   </div>
                   <button
-                    onClick={() => setActiveRemindingCustomer(expiredCustomers[1] || null)}
+                    onClick={() =>
+                      setActiveRemindingCustomer(expiredCustomers[1] || null)
+                    }
                     className="h-9 px-3.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold text-[#334155] hover:bg-slate-50 transition-colors cursor-pointer"
                   >
                     Message
@@ -386,7 +447,13 @@ export const Dashboard: React.FC = () => {
           onClick={() => navigate("/expiring")}
           className="flex items-center gap-2.5 h-[46px] px-3.5 rounded-xl bg-[#FEF3C7] text-[#B45309] text-sm font-semibold cursor-pointer active:scale-[0.99] transition-transform"
         >
-          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" className="shrink-0">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 20 20"
+            fill="none"
+            className="shrink-0"
+          >
             <path
               d="M9.99984 2.5L1.6665 16.6667H18.3332L9.99984 2.5Z"
               stroke="#B45309"
@@ -424,7 +491,9 @@ export const Dashboard: React.FC = () => {
             <div className="text-[32px] font-bold text-[#DC2626] leading-none">
               {stats.expired}
             </div>
-            <div className="text-[13px] font-medium text-[#B91C1C]">Expired</div>
+            <div className="text-[13px] font-medium text-[#B91C1C]">
+              Expired
+            </div>
           </div>
 
           {/* Stat/Expiring (Figma 1:2642 - bg #FEF3C7) */}
@@ -435,7 +504,9 @@ export const Dashboard: React.FC = () => {
             <div className="text-[32px] font-bold text-[#D97706] leading-none">
               {stats.expiring}
             </div>
-            <div className="text-[13px] font-medium text-[#B45309]">Expiring</div>
+            <div className="text-[13px] font-medium text-[#B45309]">
+              Expiring
+            </div>
           </div>
 
           {/* Stat/Active (Figma 1:2645 - bg #DCFCE7) */}
@@ -497,7 +568,11 @@ export const Dashboard: React.FC = () => {
                 className="w-10 h-10 rounded-xl bg-[#F1F5F9] hover:bg-slate-200 text-[#334155] flex items-center justify-center shrink-0 transition-colors cursor-pointer"
                 title="Message"
               >
-                <img src={iconMessage} alt="message" className="w-[18px] h-[18px] grayscale opacity-80" />
+                <img
+                  src={iconMessage}
+                  alt="message"
+                  className="w-[18px] h-[18px] grayscale opacity-80"
+                />
               </button>
             </div>
           )}
@@ -533,7 +608,11 @@ export const Dashboard: React.FC = () => {
                 className="w-10 h-10 rounded-xl bg-[#EEF2FF] hover:bg-[#E0E7FF] text-[#4338CA] flex items-center justify-center shrink-0 transition-colors cursor-pointer"
                 title="Send Reminder"
               >
-                <img src={iconMessage} alt="message" className="w-[18px] h-[18px]" />
+                <img
+                  src={iconMessage}
+                  alt="message"
+                  className="w-[18px] h-[18px]"
+                />
               </button>
             </div>
           )}
@@ -569,7 +648,11 @@ export const Dashboard: React.FC = () => {
                 className="w-10 h-10 rounded-xl bg-[#EEF2FF] hover:bg-[#E0E7FF] text-[#4338CA] flex items-center justify-center shrink-0 transition-colors cursor-pointer"
                 title="Send Reminder"
               >
-                <img src={iconMessage} alt="message" className="w-[18px] h-[18px]" />
+                <img
+                  src={iconMessage}
+                  alt="message"
+                  className="w-[18px] h-[18px]"
+                />
               </button>
             </div>
           )}

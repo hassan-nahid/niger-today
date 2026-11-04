@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { useCustomerContext } from "../context/CustomerContext";
 import { StatusBadge } from "../components/shared/StatusBadge";
 import { EmptyState } from "../components/shared/EmptyState";
+import { PageHeader } from "../components/shared/PageHeader";
 import iconSearch from "../assets/icons/icon-search.svg";
 import iconMessage from "../assets/icons/icon-message.svg";
 
@@ -56,35 +57,18 @@ export const ExpiringSoon: React.FC = () => {
       {/* DESKTOP LAYOUT (FIGMA 06 Expiring Soon - 1440x900)       */}
       {/* ======================================================== */}
       <div className="hidden lg:block px-10 py-8 space-y-6 max-w-[1440px]">
-        {/* Top Bar (Figma: Heading + Search) */}
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-[26px] font-bold text-[#0F172A] tracking-tight leading-tight">
-              Expiring Soon
-            </h1>
-            <p className="text-sm text-[#64748B] mt-1">
-              {allExpiring.length === 0
-                ? "Nothing expiring in the next 10 days"
-                : `${allExpiring.length} subscriptions expire within the next 10 days`}
-            </p>
-          </div>
-
-          {/* Search Input (Figma: 300px width, 42px height) */}
-          <div className="relative w-80">
-            <img
-              src={iconSearch}
-              alt=""
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]"
-            />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search name, phone or email"
-              className="w-full h-[42px] rounded-[10px] border border-[#E2E8F0] bg-white pl-10 pr-3.5 text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:border-[#4F46E5] focus:outline-none focus:ring-1 focus:ring-[#4F46E5] transition-all shadow-2xs"
-            />
-          </div>
-        </div>
+        {/* Top Bar (Reusable PageHeader matching Figma) */}
+        <PageHeader
+          title="Expiring Soon"
+          subtitle={
+            allExpiring.length === 0
+              ? "Nothing expiring in the next 10 days"
+              : `${allExpiring.length} subscriptions expire within the next 10 days`
+          }
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          showAddButton={false}
+        />
 
         {/* Filter Tabs (Figma: All 4, 1-3 days 1, 4-7 days 1, 8-10 days 2; hidden when 0 expiring) */}
         {allExpiring.length > 0 && (
