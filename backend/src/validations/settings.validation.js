@@ -6,6 +6,7 @@ const updateSettings = {
       expiringWindowDays: Joi.number().integer().min(1).max(30),
       graceEnabled: Joi.boolean(),
       graceDays: Joi.number().valid(5, 10, 15, 20, 25),
+      remind10Days: Joi.boolean(),
       remind7Days: Joi.boolean(),
       remind3Days: Joi.boolean(),
       remind1Day: Joi.boolean(),

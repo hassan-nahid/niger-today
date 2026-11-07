@@ -4,6 +4,7 @@ export interface AppSettings {
   expiringWindowDays: number; // default 10
   graceEnabled: boolean; // default false
   graceDays: number; // 5 | 10 | 15 | 20 | 25
+  remind10Days: boolean;
   remind7Days: boolean;
   remind3Days: boolean;
   remind1Day: boolean;

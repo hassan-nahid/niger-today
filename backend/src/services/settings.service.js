@@ -6,6 +6,7 @@ const { Settings } = require("../models");
  * @returns {number}
  */
 const calculateWindowDays = (settings) => {
+  if (settings.remind10Days) return 10;
   if (settings.remind7Days) return 7;
   if (settings.remind3Days) return 3;
   if (settings.remind1Day) return 1;
@@ -20,12 +21,13 @@ const getSettings = async () => {
   let settings = await Settings.findOne();
   if (!settings) {
     settings = await Settings.create({
-      expiringWindowDays: 7,
+      expiringWindowDays: 10,
       graceEnabled: false,
       graceDays: 5,
-      remind7Days: true,
-      remind3Days: true,
-      remind1Day: true,
+      remind10Days: true,
+      remind7Days: false,
+      remind3Days: false,
+      remind1Day: false,
       reminderTemplate:
         "Hello {name}, your Niger Today TV subscription will expire on {date}. Please renew to continue your service uninterrupted.",
       timezone: "Asia/Dhaka",

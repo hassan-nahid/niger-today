@@ -13,11 +13,13 @@ const ReminderModalContent: React.FC<ReminderModalContentProps> = ({
   onClose,
 }) => {
   const [copied, setCopied] = useState(false);
-  const [template, setTemplate] = useState<"7days" | "3days" | "1day" | "expired">("3days");
+  const [template, setTemplate] = useState<"10days" | "7days" | "3days" | "1day" | "expired">("3days");
   const { success } = useToast();
 
   const getTemplateText = (type: string) => {
     switch (type) {
+      case "10days":
+        return `Hi ${customer.name}, your TV subscription expires on ${customer.displayExpires} (10 days left). Please renew to keep your service running. Thank you!`;
       case "7days":
         return `Hi ${customer.name}, your TV subscription expires on ${customer.displayExpires} (7 days left). Please renew to keep your service running. Thank you!`;
       case "3days":
@@ -33,7 +35,7 @@ const ReminderModalContent: React.FC<ReminderModalContentProps> = ({
 
   const [message, setMessage] = useState(() => getTemplateText("3days"));
 
-  const handleTemplateChange = (t: "7days" | "3days" | "1day" | "expired") => {
+  const handleTemplateChange = (t: "10days" | "7days" | "3days" | "1day" | "expired") => {
     setTemplate(t);
     setMessage(getTemplateText(t));
   };
@@ -103,14 +105,15 @@ const ReminderModalContent: React.FC<ReminderModalContentProps> = ({
           </button>
         </div>
 
-        {/* Quick template section (Figma: 4 pill tabs) */}
+        {/* Quick template section (Pill tabs) */}
         <div className="space-y-2">
           <label className="block text-xs font-semibold text-[#334155]">
             Quick template
           </label>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
             {(
               [
+                { id: "10days", label: "10 days left" },
                 { id: "7days", label: "7 days left" },
                 { id: "3days", label: "3 days left" },
                 { id: "1day", label: "1 day left" },

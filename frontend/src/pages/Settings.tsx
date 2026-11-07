@@ -20,9 +20,10 @@ export const Settings: React.FC = () => {
   const [isSaved, setIsSaved] = useState(false);
 
   // System & Reminder settings state
-  const [remind7Days, setRemind7Days] = useState(true);
-  const [remind3Days, setRemind3Days] = useState(true);
-  const [remind1Day, setRemind1Day] = useState(true);
+  const [remind10Days, setRemind10Days] = useState(true);
+  const [remind7Days, setRemind7Days] = useState(false);
+  const [remind3Days, setRemind3Days] = useState(false);
+  const [remind1Day, setRemind1Day] = useState(false);
   const [graceEnabled, setGraceEnabled] = useState(false);
   const [graceDays, setGraceDays] = useState(5);
   const [isSettingsLoading, setIsSettingsLoading] = useState(false);
@@ -41,9 +42,10 @@ export const Settings: React.FC = () => {
       try {
         setIsSettingsLoading(true);
         const settings = await getSettingsApi();
-        setRemind7Days(settings.remind7Days);
-        setRemind3Days(settings.remind3Days);
-        setRemind1Day(settings.remind1Day);
+        setRemind10Days(settings.remind10Days ?? true);
+        setRemind7Days(settings.remind7Days ?? false);
+        setRemind3Days(settings.remind3Days ?? false);
+        setRemind1Day(settings.remind1Day ?? false);
         setGraceEnabled(settings.graceEnabled);
         setGraceDays(settings.graceDays || 5);
       } catch (err) {
@@ -84,22 +86,26 @@ export const Settings: React.FC = () => {
   };
 
   // Helper to persist reminder toggle changes to backend (Single-select: only one active at a time)
-  const handleSelectReminder = async (selected: "7days" | "3days" | "1day") => {
+  const handleSelectReminder = async (selected: "10days" | "7days" | "3days" | "1day") => {
+    let new10 = false;
     let new7 = false;
     let new3 = false;
     let new1 = false;
 
     // Toggle behavior: if already active, toggle off; otherwise make it the only active one
+    if (selected === "10days") new10 = !remind10Days;
     if (selected === "7days") new7 = !remind7Days;
     if (selected === "3days") new3 = !remind3Days;
     if (selected === "1day") new1 = !remind1Day;
 
+    setRemind10Days(new10);
     setRemind7Days(new7);
     setRemind3Days(new3);
     setRemind1Day(new1);
 
     try {
       await updateSettingsApi({
+        remind10Days: new10,
         remind7Days: new7,
         remind3Days: new3,
         remind1Day: new1,
@@ -238,6 +244,28 @@ export const Settings: React.FC = () => {
             </div>
 
             <div className="divide-y divide-[#F1F5F9] pt-1">
+              {/* Toggle 0: 10 days */}
+              <div className="flex items-center justify-between py-3.5">
+                <span className="text-sm font-medium text-[#0F172A]">
+                  Remind me 10 days before expiry
+                </span>
+                <button
+                  type="button"
+                  disabled={isSettingsLoading}
+                  onClick={() => handleSelectReminder("10days")}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                    remind10Days ? "bg-[#4F46E5]" : "bg-slate-200"
+                  }`}
+                  aria-label="Toggle 10 days reminder"
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                      remind10Days ? "translate-x-5" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+              </div>
+
               {/* Toggle 1: 7 days */}
               <div className="flex items-center justify-between py-3.5">
                 <span className="text-sm font-medium text-[#0F172A]">

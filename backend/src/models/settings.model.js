@@ -21,9 +21,13 @@ const settingsSchema = mongoose.Schema(
       enum: [5, 10, 15, 20, 25],
       default: 5,
     },
-    remind7Days: {
+    remind10Days: {
       type: Boolean,
       default: true,
+    },
+    remind7Days: {
+      type: Boolean,
+      default: false,
     },
     remind3Days: {
       type: Boolean,

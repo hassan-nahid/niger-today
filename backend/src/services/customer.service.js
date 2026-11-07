@@ -9,7 +9,8 @@ const emailService = require("./email.service");
  * @returns {number}
  */
 const calculateWindowDays = (settings) => {
-  if (!settings) return 7;
+  if (!settings) return 10;
+  if (settings.remind10Days) return 10;
   if (settings.remind7Days) return 7;
   if (settings.remind3Days) return 3;
   if (settings.remind1Day) return 1;
