@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useToast } from "../context/ToastContext";
+import { useCustomerContext } from "../context/CustomerContext";
 import { ChangePasswordModal } from "../components/modals/ChangePasswordModal";
-import { Lock, Check } from "lucide-react";
+import { Lock, Check, ShieldCheck } from "lucide-react";
 import axios from "axios";
+import { getSettingsApi, updateSettingsApi } from "../api/settings.api";
 
 export const Settings: React.FC = () => {
   const { user, updateProfile } = useAuth();
+  const { refreshData } = useCustomerContext();
   const toast = useToast();
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
@@ -16,6 +19,15 @@ export const Settings: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
+  // System & Reminder settings state
+  const [remind7Days, setRemind7Days] = useState(true);
+  const [remind3Days, setRemind3Days] = useState(true);
+  const [remind1Day, setRemind1Day] = useState(true);
+  const [graceEnabled, setGraceEnabled] = useState(false);
+  const [graceDays, setGraceDays] = useState(5);
+  const [isSettingsLoading, setIsSettingsLoading] = useState(false);
+
+  // Load current user
   useEffect(() => {
     if (user) {
       setName(user.fullName || user.firstName || "Alex Owner");
@@ -23,12 +35,29 @@ export const Settings: React.FC = () => {
     }
   }, [user]);
 
-  // Notification toggles from Figma 08
-  const [remind7Days, setRemind7Days] = useState(true);
-  const [remind3Days, setRemind3Days] = useState(true);
-  const [remind1Day, setRemind1Day] = useState(true);
+  // Load real settings from backend API
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        setIsSettingsLoading(true);
+        const settings = await getSettingsApi();
+        setRemind7Days(settings.remind7Days);
+        setRemind3Days(settings.remind3Days);
+        setRemind1Day(settings.remind1Day);
+        setGraceEnabled(settings.graceEnabled);
+        setGraceDays(settings.graceDays || 5);
+      } catch (err) {
+        console.warn("Could not load settings from API, using defaults", err);
+      } finally {
+        setIsSettingsLoading(false);
+      }
+    };
 
-  const handleSaveChanges = async (e: React.FormEvent) => {
+    fetchSettings();
+  }, []);
+
+  // Save account information
+  const handleSaveAccount = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
 
@@ -46,11 +75,56 @@ export const Settings: React.FC = () => {
         toast.error("Could not save settings", err.response.data.message);
       } else {
         setIsSaved(true);
-        toast.success("Settings saved", "Account information updated locally.");
+        toast.success("Settings saved", "Account information updated.");
         setTimeout(() => setIsSaved(false), 2500);
       }
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  // Helper to persist reminder toggle changes to backend (Single-select: only one active at a time)
+  const handleSelectReminder = async (selected: "7days" | "3days" | "1day") => {
+    let new7 = false;
+    let new3 = false;
+    let new1 = false;
+
+    // Toggle behavior: if already active, toggle off; otherwise make it the only active one
+    if (selected === "7days") new7 = !remind7Days;
+    if (selected === "3days") new3 = !remind3Days;
+    if (selected === "1day") new1 = !remind1Day;
+
+    setRemind7Days(new7);
+    setRemind3Days(new3);
+    setRemind1Day(new1);
+
+    try {
+      await updateSettingsApi({
+        remind7Days: new7,
+        remind3Days: new3,
+        remind1Day: new1,
+      });
+      await refreshData();
+      toast.success("Reminder updated", "Notification preference saved.");
+    } catch (err) {
+      console.error("Failed to update reminder settings:", err);
+      toast.error("Error", "Could not save reminder settings.");
+    }
+  };
+
+  // Helper to save grace period settings
+  const handleSaveSystemSettings = async () => {
+    try {
+      await updateSettingsApi({
+        graceEnabled,
+        graceDays,
+      });
+      // Refresh customer list & stats with new rules applied
+      await refreshData();
+      toast.success("Grace period saved", "Grace period rules have been updated successfully.");
+    } catch (err) {
+      console.error("Failed to update grace period rules:", err);
+      toast.error("Error", "Could not save grace period rules.");
     }
   };
 
@@ -66,7 +140,7 @@ export const Settings: React.FC = () => {
             Settings
           </h1>
           <p className="text-sm text-[#64748B]">
-            Manage your account and password.
+            Manage your account, password, and subscription rules.
           </p>
         </div>
 
@@ -75,7 +149,7 @@ export const Settings: React.FC = () => {
           {/* CARD 1: Account (Figma 1:1174)                       */}
           {/* ==================================================== */}
           <form
-            onSubmit={handleSaveChanges}
+            onSubmit={handleSaveAccount}
             className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-2xs space-y-4"
           >
             <h2 className="text-base font-semibold text-[#0F172A]">Account</h2>
@@ -171,7 +245,8 @@ export const Settings: React.FC = () => {
                 </span>
                 <button
                   type="button"
-                  onClick={() => setRemind7Days(!remind7Days)}
+                  disabled={isSettingsLoading}
+                  onClick={() => handleSelectReminder("7days")}
                   className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
                     remind7Days ? "bg-[#4F46E5]" : "bg-slate-200"
                   }`}
@@ -192,7 +267,8 @@ export const Settings: React.FC = () => {
                 </span>
                 <button
                   type="button"
-                  onClick={() => setRemind3Days(!remind3Days)}
+                  disabled={isSettingsLoading}
+                  onClick={() => handleSelectReminder("3days")}
                   className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
                     remind3Days ? "bg-[#4F46E5]" : "bg-slate-200"
                   }`}
@@ -213,7 +289,8 @@ export const Settings: React.FC = () => {
                 </span>
                 <button
                   type="button"
-                  onClick={() => setRemind1Day(!remind1Day)}
+                  disabled={isSettingsLoading}
+                  onClick={() => handleSelectReminder("1day")}
                   className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
                     remind1Day ? "bg-[#4F46E5]" : "bg-slate-200"
                   }`}
@@ -224,6 +301,87 @@ export const Settings: React.FC = () => {
                       remind1Day ? "translate-x-5" : "translate-x-0"
                     }`}
                   />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* ==================================================== */}
+          {/* CARD 4: Grace Period Settings                        */}
+          {/* ==================================================== */}
+          <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-2xs space-y-5">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5 text-[#4F46E5]" />
+                  <h2 className="text-base font-semibold text-[#0F172A]">
+                    Grace Period
+                  </h2>
+                </div>
+                <p className="text-sm text-[#64748B]">
+                  Allow customers extra grace days after expiry before service disconnection.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4 pt-1">
+              {/* Grace Period Toggle */}
+              <div className="flex items-center justify-between py-2 border-t border-[#F1F5F9]">
+                <div>
+                  <div className="text-sm font-medium text-[#0F172A]">
+                    Enable Grace Period
+                  </div>
+                  <div className="text-xs text-[#64748B]">
+                    Keep uninterrupted service during payment delay
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setGraceEnabled(!graceEnabled)}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                    graceEnabled ? "bg-[#4F46E5]" : "bg-slate-200"
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                      graceEnabled ? "translate-x-5" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Grace Days Select */}
+              {graceEnabled && (
+                <div className="space-y-1.5 pl-3 border-l-2 border-[#4F46E5] animate-in fade-in duration-200">
+                  <label className="block text-xs font-semibold text-[#334155]">
+                    Grace Period Duration
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {[5, 10, 15, 20, 25].map((days) => (
+                      <button
+                        key={days}
+                        type="button"
+                        onClick={() => setGraceDays(days)}
+                        className={`h-9 px-4 rounded-lg text-xs font-semibold cursor-pointer transition-all border ${
+                          graceDays === days
+                            ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
+                            : "border-[#E2E8F0] bg-white text-[#334155] hover:bg-slate-50"
+                        }`}
+                      >
+                        {days} Days
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={handleSaveSystemSettings}
+                  className="h-[40px] px-4 rounded-[10px] bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-semibold cursor-pointer transition-all shadow-xs active:scale-[0.99]"
+                >
+                  Save Grace Period
                 </button>
               </div>
             </div>

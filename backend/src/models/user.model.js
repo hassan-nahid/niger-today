@@ -16,6 +16,12 @@ const userSchema = mongoose.Schema(
       required: false,
       default: null,
     },
+    name: {
+      type: String,
+      required: false,
+      trim: true,
+      default: null,
+    },
     fullName: {
       type: String,
       required: false,
@@ -94,7 +100,7 @@ const userSchema = mongoose.Schema(
     },
     isEmailVerified: {
       type: Boolean,
-      default: false,
+      default: true,
     },
     isResetPassword: {
       type: Boolean,
@@ -170,8 +176,17 @@ userSchema.methods.isPasswordMatch = async function (password) {
   return bcrypt.compare(password, user.password);
 };
 
+userSchema.virtual("passwordHash").get(function () {
+  return this.password;
+});
+
 userSchema.pre("save", async function (next) {
   const user = this;
+  if (!user.name && user.fullName) {
+    user.name = user.fullName;
+  } else if (!user.fullName && user.name) {
+    user.fullName = user.name;
+  }
   if (user.isModified("password")) {
     user.password = await bcrypt.hash(user.password, 8);
   }

@@ -78,25 +78,19 @@ export interface ProfileResult {
   securitySettings?: unknown;
 }
 
-// 1. Register API
-export const registerApi = async (data: RegisterPayload): Promise<BackendResponse<Record<string, unknown>>> => {
-  const response = await apiClient.post<BackendResponse<Record<string, unknown>>>("/auth/register", data);
-  return response.data;
-};
-
-// 2. Verify Email (OTP) API
-export const verifyEmailApi = async (
-  data: VerifyEmailPayload
-): Promise<BackendResponse<AuthResult>> => {
-  const response = await apiClient.post<BackendResponse<AuthResult>>("/auth/verify-email", data);
-  return response.data;
-};
-
-// 3. Login API
+// 1. Login API
 export const loginApi = async (
   data: LoginPayload
 ): Promise<BackendResponse<AuthResult>> => {
   const response = await apiClient.post<BackendResponse<AuthResult>>("/auth/login", data);
+  return response.data;
+};
+
+// 2. Verify OTP / Email API (Used for Password Reset Verification)
+export const verifyEmailApi = async (
+  data: VerifyEmailPayload
+): Promise<BackendResponse<AuthResult>> => {
+  const response = await apiClient.post<BackendResponse<AuthResult>>("/auth/verify-email", data);
   return response.data;
 };
 

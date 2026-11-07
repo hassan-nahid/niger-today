@@ -60,9 +60,6 @@ const login = catchAsync(async (req, res) => {
   if (isUser?.isDeleted === true) {
     throw new ApiError(httpStatus.BAD_REQUEST, "This Account is Deleted");
   }
-  if (isUser?.isEmailVerified === false) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "Email not verified");
-  }
   if (!isUser) {
     throw new ApiError(httpStatus.NOT_FOUND, "No users found with this email");
   }

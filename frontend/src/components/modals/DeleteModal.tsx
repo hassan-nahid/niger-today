@@ -1,16 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 import { useCustomerContext } from "../../context/CustomerContext";
 import { useToast } from "../../context/ToastContext";
 import { type Customer } from "../../types/customer";
 
 interface DeleteModalContentProps {
   customer: Customer;
+  isDeleting?: boolean;
   onClose: () => void;
   onConfirm: () => void;
 }
 
 const DeleteModalContent: React.FC<DeleteModalContentProps> = ({
   customer,
+  isDeleting = false,
   onClose,
   onConfirm,
 }) => {
@@ -77,8 +79,9 @@ const DeleteModalContent: React.FC<DeleteModalContentProps> = ({
           {/* Cancel Button (Button/secondary) */}
           <button
             type="button"
+            disabled={isDeleting}
             onClick={onClose}
-            className="h-[42px] px-5 rounded-[10px] border border-[#E2E8F0] bg-white hover:bg-slate-50 text-sm font-semibold text-[#334155] transition-colors cursor-pointer shadow-2xs"
+            className="h-[42px] px-5 rounded-[10px] border border-[#E2E8F0] bg-white hover:bg-slate-50 text-sm font-semibold text-[#334155] transition-colors cursor-pointer shadow-2xs disabled:opacity-70"
           >
             Cancel
           </button>
@@ -86,8 +89,9 @@ const DeleteModalContent: React.FC<DeleteModalContentProps> = ({
           {/* Delete Button (Button/danger) */}
           <button
             type="button"
+            disabled={isDeleting}
             onClick={onConfirm}
-            className="h-[42px] px-[18px] rounded-[10px] bg-[#DC2626] hover:bg-[#B91C1C] text-white text-sm font-semibold flex items-center gap-2 transition-colors cursor-pointer shadow-sm active:scale-[0.99]"
+            className="h-[42px] px-[18px] rounded-[10px] bg-[#DC2626] hover:bg-[#B91C1C] text-white text-sm font-semibold flex items-center gap-2 transition-colors cursor-pointer shadow-sm active:scale-[0.99] disabled:opacity-70"
           >
             {/* White trash icon */}
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -99,7 +103,7 @@ const DeleteModalContent: React.FC<DeleteModalContentProps> = ({
                 stroke="white"
               />
             </svg>
-            <span>Delete customer</span>
+            <span>{isDeleting ? "Deleting..." : "Delete customer"}</span>
           </button>
         </div>
       </div>
@@ -110,19 +114,28 @@ const DeleteModalContent: React.FC<DeleteModalContentProps> = ({
 export const DeleteModal: React.FC = () => {
   const { activeDeletingCustomer, setActiveDeletingCustomer, deleteCustomer } =
     useCustomerContext();
-  const { success } = useToast();
+  const { success, error } = useToast();
+  const [isDeleting, setIsDeleting] = useState(false);
 
   if (!activeDeletingCustomer) return null;
 
   return (
     <DeleteModalContent
       customer={activeDeletingCustomer}
+      isDeleting={isDeleting}
       onClose={() => setActiveDeletingCustomer(null)}
-      onConfirm={() => {
+      onConfirm={async () => {
         const name = activeDeletingCustomer.name;
-        deleteCustomer(activeDeletingCustomer.id);
-        setActiveDeletingCustomer(null);
-        success("Customer deleted", `${name} has been removed.`);
+        setIsDeleting(true);
+        try {
+          await deleteCustomer(activeDeletingCustomer.id);
+          setActiveDeletingCustomer(null);
+          success("Customer deleted", `${name} has been removed.`);
+        } catch (err: any) {
+          error("Could not delete customer", err?.response?.data?.message || "Please try again.");
+        } finally {
+          setIsDeleting(false);
+        }
       }}
     />
   );

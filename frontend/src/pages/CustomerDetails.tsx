@@ -1,6 +1,8 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
 import { useCustomerContext } from "../context/CustomerContext";
+import { getCustomerByIdApi } from "../api/customer.api";
+import type { Customer } from "../types/customer";
 import { StatusBadge } from "../components/shared/StatusBadge";
 import {
   ArrowLeft,
@@ -45,8 +47,23 @@ export const CustomerDetails: React.FC = () => {
   } = useCustomerContext();
 
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [fetchedCustomer, setFetchedCustomer] = useState<Customer | null>(null);
+  const [isLoadingCustomer, setIsLoadingCustomer] = useState(false);
 
-  const customer = id ? getCustomerById(id) : undefined;
+  useEffect(() => {
+    if (id) {
+      const existing = getCustomerById(id);
+      if (!existing) {
+        setIsLoadingCustomer(true);
+        getCustomerByIdApi(id)
+          .then((cust) => setFetchedCustomer(cust))
+          .catch((err) => console.error("Could not fetch customer by ID:", err))
+          .finally(() => setIsLoadingCustomer(false));
+      }
+    }
+  }, [id, getCustomerById]);
+
+  const customer = (id ? getCustomerById(id) : undefined) || fetchedCustomer;
 
   const handleCopy = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
@@ -61,6 +78,15 @@ export const CustomerDetails: React.FC = () => {
     if (customer.status === "expiring") return 92;
     return 35;
   }, [customer]);
+
+  if (isLoadingCustomer) {
+    return (
+      <div className="w-full min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-8">
+        <div className="w-8 h-8 border-3 border-[#4F46E5] border-t-transparent rounded-full animate-spin mb-3" />
+        <p className="text-sm text-[#64748B]">Loading customer details...</p>
+      </div>
+    );
+  }
 
   if (!customer) {
     return (

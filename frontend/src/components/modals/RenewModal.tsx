@@ -8,7 +8,7 @@ import { X, RefreshCw, Check } from "lucide-react";
 interface RenewModalContentProps {
   customer: Customer;
   onClose: () => void;
-  onRenew: (id: string, months: number) => void;
+  onRenew: (id: string, months: number) => Promise<any> | void;
 }
 
 const RenewModalContent: React.FC<RenewModalContentProps> = ({
@@ -17,18 +17,31 @@ const RenewModalContent: React.FC<RenewModalContentProps> = ({
   onRenew,
 }) => {
   const [selectedMonths, setSelectedMonths] = useState<number>(3);
-  const { success } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { success, error } = useToast();
 
-  const handleConfirm = () => {
-    onRenew(customer.id, selectedMonths);
-    success("Subscription renewed", `${customer.name} · new expiry ${newExpiryDisplay}`);
-    onClose();
+  const handleConfirm = async () => {
+    setIsSubmitting(true);
+    try {
+      await onRenew(customer.id, selectedMonths);
+      success("Subscription renewed", `${customer.name} · new expiry ${newExpiryDisplay}`);
+      onClose();
+    } catch (err: any) {
+      error("Could not renew subscription", err?.response?.data?.message || "Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Helper to calculate new expiry date dynamically
   const newExpiryDisplay = useMemo(() => {
     try {
-      const baseDate = customer.expiryDate ? new Date(customer.expiryDate) : new Date();
+      const now = new Date();
+      let baseDate = customer.expiryDate ? new Date(customer.expiryDate) : now;
+      // If customer is already expired past today (grace ended), renewal starts from today
+      if (baseDate < now) {
+        baseDate = now;
+      }
       const d = new Date(baseDate.getFullYear(), baseDate.getMonth() + selectedMonths, baseDate.getDate());
       const months = [
         "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -161,11 +174,12 @@ const RenewModalContent: React.FC<RenewModalContentProps> = ({
               </button>
               <button
                 type="button"
+                disabled={isSubmitting}
                 onClick={handleConfirm}
-                className="h-[42px] px-5 rounded-[10px] bg-[#4F46E5] hover:bg-[#4338CA] text-white text-sm font-semibold flex items-center gap-2 cursor-pointer transition-all shadow-sm active:scale-[0.99]"
+                className="h-[42px] px-5 rounded-[10px] bg-[#4F46E5] hover:bg-[#4338CA] text-white text-sm font-semibold flex items-center gap-2 cursor-pointer transition-all shadow-sm active:scale-[0.99] disabled:opacity-70"
               >
                 <Check className="w-4 h-4" />
-                <span>Confirm renewal</span>
+                <span>{isSubmitting ? "Renewing..." : "Confirm renewal"}</span>
               </button>
             </div>
       </div>

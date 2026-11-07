@@ -133,14 +133,6 @@ export const Login: React.FC = () => {
             >
               {isSubmitting ? "Logging in..." : "Log in"}
             </button>
-
-            {/* Link to Register */}
-            <p className="text-center text-xs text-[#64748B] pt-2">
-              Don't have an account?{" "}
-              <Link to="/register" className="font-semibold text-[#4F46E5] hover:underline">
-                Sign up
-              </Link>
-            </p>
           </form>
         </div>
       </div>
@@ -303,14 +295,6 @@ export const Login: React.FC = () => {
               >
                 {isSubmitting ? "Logging in..." : "Log in"}
               </button>
-
-              {/* Link to Register */}
-              <p className="text-center text-xs text-[#64748B] pt-2">
-                Don't have an account?{" "}
-                <Link to="/register" className="font-semibold text-[#4F46E5] hover:underline">
-                  Sign up
-                </Link>
-              </p>
             </form>
           </div>
         </div>

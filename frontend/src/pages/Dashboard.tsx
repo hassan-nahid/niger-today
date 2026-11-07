@@ -52,24 +52,43 @@ export const Dashboard: React.FC = () => {
         />
 
         {/* Attention Banner (Figma: height 64px, bg #FFFBEB, border #FDE68A) */}
-        <div className="flex items-center justify-between rounded-2xl border border-[#FDE68A] bg-[#FFFBEB] px-5 py-4 shadow-xs">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FEF3C7]">
-              <img src={iconBannerAlert} alt="alert" className="w-5 h-5" />
+        {attentionCount > 0 ? (
+          <div className="flex items-center justify-between rounded-2xl border border-[#FDE68A] bg-[#FFFBEB] px-5 py-4 shadow-xs">
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FEF3C7]">
+                <img src={iconBannerAlert} alt="alert" className="w-5 h-5" />
+              </div>
+              <p className="text-sm font-medium text-[#92400E]">
+                <span className="font-bold">{attentionCount} customers</span> need your attention
+                — {stats.expiring} expire within 10 days and {stats.expired} have already expired.
+              </p>
             </div>
-            <p className="text-sm font-medium text-[#92400E]">
-              <span className="font-bold">{attentionCount} customers</span> need your attention
-              — {stats.expiring} expire within 10 days and {stats.expired} have already expired.
-            </p>
-          </div>
 
-          <button
-            onClick={() => navigate("/expiring")}
-            className="h-9 px-4 rounded-lg border border-[#CBD5E1] bg-white text-xs font-semibold text-[#0F172A] hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
-          >
-            Review now
-          </button>
-        </div>
+            <button
+              onClick={() => navigate("/expiring")}
+              className="h-9 px-4 rounded-lg border border-[#CBD5E1] bg-white text-xs font-semibold text-[#0F172A] hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+            >
+              Review now
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between rounded-2xl border border-[#BBF7D0] bg-[#F0FDF4] px-5 py-4 shadow-xs">
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#DCFCE7]">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#16A34A]" />
+              </div>
+              <p className="text-sm font-medium text-[#166534]">
+                All subscriptions are up to date. No customers require attention right now.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate("/customers/new")}
+              className="h-9 px-4 rounded-lg bg-[#16A34A] text-white text-xs font-semibold hover:bg-[#15803D] transition-colors shadow-2xs cursor-pointer"
+            >
+              + Add Customer
+            </button>
+          </div>
+        )}
 
         {/* 4 Stat Cards with EXACT Figma SVGs */}
         <div className="grid grid-cols-4 gap-4">
@@ -177,165 +196,58 @@ export const Dashboard: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {/* Row 1: John Smith */}
-                  <tr className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3 px-2">
-                      <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-full bg-[#E0E7FF] text-[#4338CA] flex items-center justify-center font-bold text-xs shrink-0">
-                          JS
-                        </div>
-                        <span className="font-semibold text-[#0F172A] text-sm">
-                          John Smith
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-2 font-medium text-[#334155] text-sm">
-                      Oct 8
-                    </td>
-                    <td className="py-3 px-2">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FEF3C7] text-[#B45309]">
-                        <span className="h-1.5 w-1.5 rounded-full bg-[#D97706]" />
-                        3 days left
-                      </span>
-                    </td>
-                    <td className="py-3 px-2 text-right">
-                      <button
-                        onClick={() =>
-                          setActiveRemindingCustomer(
-                            expiringCustomers[0] || null,
-                          )
-                        }
-                        className="h-[34px] px-3 py-[7px] rounded-[10px] bg-[#EEF2FF] hover:bg-[#E0E7FF] text-[#4338CA] text-sm font-semibold inline-flex items-center gap-2 transition-colors cursor-pointer shadow-2xs"
+                  {expiringCustomers.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="py-8 text-center text-[#64748B] text-sm">
+                        No customers expiring soon.
+                      </td>
+                    </tr>
+                  ) : (
+                    expiringCustomers.slice(0, 5).map((cust) => (
+                      <tr
+                        key={cust.id}
+                        onClick={() => navigate(`/customers/${cust.id}`)}
+                        className="hover:bg-slate-50/80 transition-colors cursor-pointer"
                       >
-                        <img
-                          src={iconMessage}
-                          alt="message"
-                          className="w-4 h-4 shrink-0"
-                        />
-                        <span>Send Reminder</span>
-                      </button>
-                    </td>
-                  </tr>
-
-                  {/* Row 2: Michael Brown */}
-                  <tr className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3 px-2">
-                      <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-full bg-[#E0E7FF] text-[#4338CA] flex items-center justify-center font-bold text-xs shrink-0">
-                          MB
-                        </div>
-                        <span className="font-semibold text-[#0F172A] text-sm">
-                          Michael Brown
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-2 font-medium text-[#334155] text-sm">
-                      Oct 12
-                    </td>
-                    <td className="py-3 px-2">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FEF3C7] text-[#B45309]">
-                        <span className="h-1.5 w-1.5 rounded-full bg-[#D97706]" />
-                        7 days left
-                      </span>
-                    </td>
-                    <td className="py-3 px-2 text-right">
-                      <button
-                        onClick={() =>
-                          setActiveRemindingCustomer(
-                            expiringCustomers[1] || null,
-                          )
-                        }
-                        className="h-[34px] px-3 py-[7px] rounded-[10px] bg-[#EEF2FF] hover:bg-[#E0E7FF] text-[#4338CA] text-sm font-semibold inline-flex items-center gap-2 transition-colors cursor-pointer shadow-2xs"
-                      >
-                        <img
-                          src={iconMessage}
-                          alt="message"
-                          className="w-4 h-4 shrink-0"
-                        />
-                        <span>Send Reminder</span>
-                      </button>
-                    </td>
-                  </tr>
-
-                  {/* Row 3: David Lee */}
-                  <tr className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3 px-2">
-                      <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-full bg-[#E0E7FF] text-[#4338CA] flex items-center justify-center font-bold text-xs shrink-0">
-                          DL
-                        </div>
-                        <span className="font-semibold text-[#0F172A] text-sm">
-                          David Lee
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-2 font-medium text-[#334155] text-sm">
-                      Oct 15
-                    </td>
-                    <td className="py-3 px-2">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FEF3C7] text-[#B45309]">
-                        <span className="h-1.5 w-1.5 rounded-full bg-[#D97706]" />
-                        10 days left
-                      </span>
-                    </td>
-                    <td className="py-3 px-2 text-right">
-                      <button
-                        onClick={() =>
-                          setActiveRemindingCustomer(
-                            expiringCustomers[2] || null,
-                          )
-                        }
-                        className="h-[34px] px-3 py-[7px] rounded-[10px] bg-[#EEF2FF] hover:bg-[#E0E7FF] text-[#4338CA] text-sm font-semibold inline-flex items-center gap-2 transition-colors cursor-pointer shadow-2xs"
-                      >
-                        <img
-                          src={iconMessage}
-                          alt="message"
-                          className="w-4 h-4 shrink-0"
-                        />
-                        <span>Send Reminder</span>
-                      </button>
-                    </td>
-                  </tr>
-
-                  {/* Row 4: Priya Das */}
-                  <tr className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3 px-2">
-                      <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-full bg-[#E0E7FF] text-[#4338CA] flex items-center justify-center font-bold text-xs shrink-0">
-                          PD
-                        </div>
-                        <span className="font-semibold text-[#0F172A] text-sm">
-                          Priya Das
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-2 font-medium text-[#334155] text-sm">
-                      Oct 15
-                    </td>
-                    <td className="py-3 px-2">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FEF3C7] text-[#B45309]">
-                        <span className="h-1.5 w-1.5 rounded-full bg-[#D97706]" />
-                        10 days left
-                      </span>
-                    </td>
-                    <td className="py-3 px-2 text-right">
-                      <button
-                        onClick={() =>
-                          setActiveRemindingCustomer(
-                            expiringCustomers[3] || null,
-                          )
-                        }
-                        className="h-[34px] px-3 py-[7px] rounded-[10px] bg-[#EEF2FF] hover:bg-[#E0E7FF] text-[#4338CA] text-sm font-semibold inline-flex items-center gap-2 transition-colors cursor-pointer shadow-2xs"
-                      >
-                        <img
-                          src={iconMessage}
-                          alt="message"
-                          className="w-4 h-4 shrink-0"
-                        />
-                        <span>Send Reminder</span>
-                      </button>
-                    </td>
-                  </tr>
+                        <td className="py-3 px-2">
+                          <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-full bg-[#E0E7FF] text-[#4338CA] flex items-center justify-center font-bold text-xs shrink-0">
+                              {cust.initials}
+                            </div>
+                            <span className="font-semibold text-[#0F172A] text-sm hover:text-[#4F46E5] transition-colors">
+                              {cust.name}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-2 font-medium text-[#334155] text-sm">
+                          {cust.displayExpires}
+                        </td>
+                        <td className="py-3 px-2">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FEF3C7] text-[#B45309]">
+                            <span className="h-1.5 w-1.5 rounded-full bg-[#D97706]" />
+                            {cust.daysRemaining} days left
+                          </span>
+                        </td>
+                        <td className="py-3 px-2 text-right">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveRemindingCustomer(cust);
+                            }}
+                            className="h-[34px] px-3 py-[7px] rounded-[10px] bg-[#EEF2FF] hover:bg-[#E0E7FF] text-[#4338CA] text-sm font-semibold inline-flex items-center gap-2 transition-colors cursor-pointer shadow-2xs"
+                          >
+                            <img
+                              src={iconMessage}
+                              alt="message"
+                              className="w-4 h-4 shrink-0"
+                            />
+                            <span>Send Reminder</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -352,55 +264,43 @@ export const Dashboard: React.FC = () => {
               </div>
 
               <div className="space-y-4">
-                {/* Robert Hall */}
-                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                  <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-full bg-[#E0E7FF] text-[#4338CA] flex items-center justify-center font-bold text-xs shrink-0">
-                      RH
-                    </div>
-                    <div>
-                      <div className="text-sm font-semibold text-[#0F172A]">
-                        Robert Hall
-                      </div>
-                      <div className="text-xs text-[#DC2626] font-medium">
-                        Expired 2 days ago
-                      </div>
-                    </div>
+                {expiredCustomers.length === 0 ? (
+                  <div className="py-8 text-center text-[#64748B] text-sm">
+                    No expired customers.
                   </div>
-                  <button
-                    onClick={() =>
-                      setActiveRemindingCustomer(expiredCustomers[0] || null)
-                    }
-                    className="h-9 px-3.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold text-[#334155] hover:bg-slate-50 transition-colors cursor-pointer"
-                  >
-                    Message
-                  </button>
-                </div>
-
-                {/* James Cole */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-full bg-[#E0E7FF] text-[#4338CA] flex items-center justify-center font-bold text-xs shrink-0">
-                      JC
-                    </div>
-                    <div>
-                      <div className="text-sm font-semibold text-[#0F172A]">
-                        James Cole
+                ) : (
+                  expiredCustomers.slice(0, 4).map((cust) => (
+                    <div
+                      key={cust.id}
+                      onClick={() => navigate(`/customers/${cust.id}`)}
+                      className="flex items-center justify-between pb-3 border-b border-slate-100 last:border-b-0 cursor-pointer hover:bg-slate-50/50 p-1.5 rounded-lg transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-full bg-[#E0E7FF] text-[#4338CA] flex items-center justify-center font-bold text-xs shrink-0">
+                          {cust.initials}
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold text-[#0F172A] hover:text-[#4F46E5] transition-colors">
+                            {cust.name}
+                          </div>
+                          <div className="text-xs text-[#DC2626] font-medium">
+                            Expired {Math.abs(cust.daysRemaining)} days ago
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-xs text-[#DC2626] font-medium">
-                        Expired 5 days ago
-                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveRemindingCustomer(cust);
+                        }}
+                        className="h-9 px-3.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold text-[#334155] hover:bg-slate-50 transition-colors cursor-pointer"
+                      >
+                        Message
+                      </button>
                     </div>
-                  </div>
-                  <button
-                    onClick={() =>
-                      setActiveRemindingCustomer(expiredCustomers[1] || null)
-                    }
-                    className="h-9 px-3.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold text-[#334155] hover:bg-slate-50 transition-colors cursor-pointer"
-                  >
-                    Message
-                  </button>
-                </div>
+                  ))
+                )}
               </div>
             </div>
 
@@ -535,126 +435,94 @@ export const Dashboard: React.FC = () => {
           </button>
         </div>
 
-        {/* 3 List Items matching Figma exact M2 cards (82px height, border #E2E8F0, rounded-[14px]) */}
+        {/* List Items dynamically matching attention list */}
         <div className="space-y-2.5">
-          {/* Card 1: Robert Hall (Expired 2 days ago) */}
-          {expiredCustomers[0] && (
-            <div
-              onClick={() => navigate(`/customers/${expiredCustomers[0].id}`)}
-              className="flex items-center justify-between h-[82px] px-3.5 rounded-[14px] bg-white border border-[#E2E8F0] shadow-2xs cursor-pointer hover:border-slate-300 transition-colors"
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-full bg-[#E0E7FF] text-[#4338CA] font-bold text-sm flex items-center justify-center shrink-0">
-                  {expiredCustomers[0].initials}
-                </div>
-                <div className="min-w-0">
-                  <div className="text-sm font-bold text-[#0F172A] leading-tight truncate">
-                    {expiredCustomers[0].name}
-                  </div>
-                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold bg-[#FEE2E2] text-[#B91C1C] mt-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#DC2626]" />
-                    <span>Expired 2 days ago</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Button: 40x40px #F1F5F9 with slate message icon */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setActiveRemindingCustomer(expiredCustomers[0]);
-                }}
-                className="w-10 h-10 rounded-xl bg-[#F1F5F9] hover:bg-slate-200 text-[#334155] flex items-center justify-center shrink-0 transition-colors cursor-pointer"
-                title="Message"
-              >
-                <img
-                  src={iconMessage}
-                  alt="message"
-                  className="w-[18px] h-[18px] grayscale opacity-80"
-                />
-              </button>
+          {attentionCount === 0 ? (
+            <div className="py-8 text-center text-[#64748B] text-sm bg-white rounded-[14px] border border-[#E2E8F0]">
+              No customers needing attention today.
             </div>
-          )}
-
-          {/* Card 2: John Smith (3 days left) */}
-          {expiringCustomers[0] && (
-            <div
-              onClick={() => navigate(`/customers/${expiringCustomers[0].id}`)}
-              className="flex items-center justify-between h-[82px] px-3.5 rounded-[14px] bg-white border border-[#E2E8F0] shadow-2xs cursor-pointer hover:border-slate-300 transition-colors"
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-full bg-[#E0E7FF] text-[#4338CA] font-bold text-sm flex items-center justify-center shrink-0">
-                  {expiringCustomers[0].initials}
-                </div>
-                <div className="min-w-0">
-                  <div className="text-sm font-bold text-[#0F172A] leading-tight truncate">
-                    {expiringCustomers[0].name}
+          ) : (
+            <>
+              {/* Expired customers first */}
+              {expiredCustomers.slice(0, 2).map((cust) => (
+                <div
+                  key={cust.id}
+                  onClick={() => navigate(`/customers/${cust.id}`)}
+                  className="flex items-center justify-between h-[82px] px-3.5 rounded-[14px] bg-white border border-[#E2E8F0] shadow-2xs cursor-pointer hover:border-slate-300 transition-colors"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-full bg-[#E0E7FF] text-[#4338CA] font-bold text-sm flex items-center justify-center shrink-0">
+                      {cust.initials}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-sm font-bold text-[#0F172A] leading-tight truncate">
+                        {cust.name}
+                      </div>
+                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold bg-[#FEE2E2] text-[#B91C1C] mt-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#DC2626]" />
+                        <span>Expired {Math.abs(cust.daysRemaining)} days ago</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold bg-[#FEF3C7] text-[#B45309] mt-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#D97706]" />
-                    <span>3 days left</span>
-                  </div>
-                </div>
-              </div>
 
-              {/* Action Button: 40x40px #EEF2FF with indigo message icon */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setActiveRemindingCustomer(expiringCustomers[0]);
-                }}
-                className="w-10 h-10 rounded-xl bg-[#EEF2FF] hover:bg-[#E0E7FF] text-[#4338CA] flex items-center justify-center shrink-0 transition-colors cursor-pointer"
-                title="Send Reminder"
-              >
-                <img
-                  src={iconMessage}
-                  alt="message"
-                  className="w-[18px] h-[18px]"
-                />
-              </button>
-            </div>
-          )}
-
-          {/* Card 3: Michael Brown (7 days left) */}
-          {expiringCustomers[1] && (
-            <div
-              onClick={() => navigate(`/customers/${expiringCustomers[1].id}`)}
-              className="flex items-center justify-between h-[82px] px-3.5 rounded-[14px] bg-white border border-[#E2E8F0] shadow-2xs cursor-pointer hover:border-slate-300 transition-colors"
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-full bg-[#E0E7FF] text-[#4338CA] font-bold text-sm flex items-center justify-center shrink-0">
-                  {expiringCustomers[1].initials}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveRemindingCustomer(cust);
+                    }}
+                    className="w-10 h-10 rounded-xl bg-[#F1F5F9] hover:bg-slate-200 text-[#334155] flex items-center justify-center shrink-0 transition-colors cursor-pointer"
+                    title="Message"
+                  >
+                    <img
+                      src={iconMessage}
+                      alt="message"
+                      className="w-[18px] h-[18px] grayscale opacity-80"
+                    />
+                  </button>
                 </div>
-                <div className="min-w-0">
-                  <div className="text-sm font-bold text-[#0F172A] leading-tight truncate">
-                    {expiringCustomers[1].name}
-                  </div>
-                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold bg-[#FEF3C7] text-[#B45309] mt-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#D97706]" />
-                    <span>7 days left</span>
-                  </div>
-                </div>
-              </div>
+              ))}
 
-              {/* Action Button: 40x40px #EEF2FF with indigo message icon */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setActiveRemindingCustomer(expiringCustomers[1]);
-                }}
-                className="w-10 h-10 rounded-xl bg-[#EEF2FF] hover:bg-[#E0E7FF] text-[#4338CA] flex items-center justify-center shrink-0 transition-colors cursor-pointer"
-                title="Send Reminder"
-              >
-                <img
-                  src={iconMessage}
-                  alt="message"
-                  className="w-[18px] h-[18px]"
-                />
-              </button>
-            </div>
+              {/* Expiring customers */}
+              {expiringCustomers.slice(0, 3).map((cust) => (
+                <div
+                  key={cust.id}
+                  onClick={() => navigate(`/customers/${cust.id}`)}
+                  className="flex items-center justify-between h-[82px] px-3.5 rounded-[14px] bg-white border border-[#E2E8F0] shadow-2xs cursor-pointer hover:border-slate-300 transition-colors"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-full bg-[#E0E7FF] text-[#4338CA] font-bold text-sm flex items-center justify-center shrink-0">
+                      {cust.initials}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-sm font-bold text-[#0F172A] leading-tight truncate">
+                        {cust.name}
+                      </div>
+                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold bg-[#FEF3C7] text-[#B45309] mt-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#D97706]" />
+                        <span>{cust.daysRemaining} days left</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveRemindingCustomer(cust);
+                    }}
+                    className="w-10 h-10 rounded-xl bg-[#EEF2FF] hover:bg-[#E0E7FF] text-[#4338CA] flex items-center justify-center shrink-0 transition-colors cursor-pointer"
+                    title="Send Reminder"
+                  >
+                    <img
+                      src={iconMessage}
+                      alt="message"
+                      className="w-[18px] h-[18px]"
+                    />
+                  </button>
+                </div>
+              ))}
+            </>
           )}
         </div>
       </div>

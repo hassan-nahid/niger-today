@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useCustomerContext } from "../../context/CustomerContext";
+import { useToast } from "../../context/ToastContext";
 import { type Customer } from "../../types/customer";
 
 interface ReminderModalContentProps {
@@ -7,9 +8,13 @@ interface ReminderModalContentProps {
   onClose: () => void;
 }
 
-const ReminderModalContent: React.FC<ReminderModalContentProps> = ({ customer, onClose }) => {
+const ReminderModalContent: React.FC<ReminderModalContentProps> = ({
+  customer,
+  onClose,
+}) => {
   const [copied, setCopied] = useState(false);
   const [template, setTemplate] = useState<"7days" | "3days" | "1day" | "expired">("3days");
+  const { success } = useToast();
 
   const getTemplateText = (type: string) => {
     switch (type) {
@@ -36,6 +41,7 @@ const ReminderModalContent: React.FC<ReminderModalContentProps> = ({ customer, o
   const handleCopy = () => {
     navigator.clipboard.writeText(message);
     setCopied(true);
+    success("Copied to clipboard", "Message copied to clipboard.");
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -117,10 +123,11 @@ const ReminderModalContent: React.FC<ReminderModalContentProps> = ({ customer, o
                   key={item.id}
                   type="button"
                   onClick={() => handleTemplateChange(item.id)}
-                  className={`py-2 px-2.5 rounded-[10px] text-xs font-semibold transition-all cursor-pointer text-center ${isSelected
+                  className={`py-2 px-2.5 rounded-[10px] text-xs font-semibold transition-all cursor-pointer text-center ${
+                    isSelected
                       ? "bg-[#4F46E5] text-white shadow-2xs"
                       : "bg-white border border-[#E2E8F0] text-[#334155] hover:bg-slate-50"
-                    }`}
+                  }`}
                 >
                   {item.label}
                 </button>
@@ -144,7 +151,7 @@ const ReminderModalContent: React.FC<ReminderModalContentProps> = ({ customer, o
 
         {/* Actions (Figma exact: Cancel & Copy message right-aligned) */}
         <div className="flex items-center justify-end gap-3 pt-1">
-          {/* Cancel Button (Button/secondary) */}
+          {/* Cancel Button */}
           <button
             type="button"
             onClick={onClose}
@@ -153,13 +160,12 @@ const ReminderModalContent: React.FC<ReminderModalContentProps> = ({ customer, o
             Cancel
           </button>
 
-          {/* Copy Message Button (Button/primary) */}
+          {/* Copy Message Button (Figma Primary Action) */}
           <button
             type="button"
             onClick={handleCopy}
             className="h-[42px] px-5 rounded-[10px] bg-[#4F46E5] hover:bg-[#4338CA] text-white text-sm font-semibold flex items-center gap-2 transition-colors cursor-pointer shadow-sm active:scale-[0.99]"
           >
-            {/* Figma exact icon/copy SVG */}
             {copied ? (
               <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M5 10L8.5 13.5L15 7" />

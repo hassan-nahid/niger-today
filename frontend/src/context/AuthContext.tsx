@@ -2,16 +2,12 @@ import React, { createContext, useEffect, useState, useCallback } from "react";
 import type {
   User,
   LoginPayload,
-  RegisterPayload,
-  VerifyEmailPayload,
   UpdateProfilePayload,
   AuthResult,
   ProfileResult,
 } from "../api/auth.api";
 import {
   loginApi,
-  registerApi,
-  verifyEmailApi,
   getProfileApi,
   logoutApi,
   updateProfileApi,
@@ -23,8 +19,6 @@ export interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (data: LoginPayload) => Promise<void>;
-  register: (data: RegisterPayload) => Promise<void>;
-  verifyEmail: (data: VerifyEmailPayload) => Promise<void>;
   updateProfile: (data: UpdateProfilePayload) => Promise<void>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -85,25 +79,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setToken(tokens.access.token);
       setUser(loggedInUser);
-    }
-  };
-
-  const register = async (data: RegisterPayload) => {
-    await registerApi(data);
-  };
-
-  const verifyEmail = async (data: VerifyEmailPayload) => {
-    const response = await verifyEmailApi(data);
-    const authData = (response.data?.attributes || response.data) as AuthResult;
-    const { user: verifiedUser, tokens } = authData;
-
-    if (tokens?.access?.token) {
-      localStorage.setItem("access_token", tokens.access.token);
-      localStorage.setItem("refresh_token", tokens.refresh?.token || "");
-      localStorage.setItem("user", JSON.stringify(verifiedUser));
-
-      setToken(tokens.access.token);
-      setUser(verifiedUser);
     }
   };
 
@@ -174,8 +149,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         isAuthenticated: !!token && !!user,
         login,
-        register,
-        verifyEmail,
         updateProfile,
         logout,
         refreshProfile,

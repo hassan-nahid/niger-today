@@ -6,8 +6,6 @@ import { AppLayout } from "../components/layout/AppLayout";
 
 // Code Splitting with React.lazy
 const Login = React.lazy(() => import("../pages/Login").then((m) => ({ default: m.Login })));
-const Register = React.lazy(() => import("../pages/Register").then((m) => ({ default: m.Register })));
-const VerifyEmail = React.lazy(() => import("../pages/VerifyEmail").then((m) => ({ default: m.VerifyEmail })));
 const ForgotPassword = React.lazy(() => import("../pages/ForgotPassword").then((m) => ({ default: m.ForgotPassword })));
 
 const Dashboard = React.lazy(() => import("../pages/Dashboard").then((m) => ({ default: m.Dashboard })));
@@ -45,14 +43,6 @@ export const router = createBrowserRouter([
       {
         path: "/login",
         element: withSuspense(Login),
-      },
-      {
-        path: "/register",
-        element: withSuspense(Register),
-      },
-      {
-        path: "/verify-email",
-        element: withSuspense(VerifyEmail),
       },
       {
         path: "/forgot-password",

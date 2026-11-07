@@ -71,7 +71,7 @@ export const AddCustomer: React.FC = () => {
     }
   }, [currentExpiry]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !phone.trim()) {
       error("Could not save customer", "Please check the details and try again.");
@@ -79,19 +79,27 @@ export const AddCustomer: React.FC = () => {
     }
 
     setIsSubmitting(true);
-    addCustomer({
-      name,
-      phone,
-      email: email.trim() || `${name.toLowerCase().replace(/\s+/g, ".")}@email.com`,
-      planName: "TV Subscription",
-      durationMonths,
-      startDate,
-      expiryDate: currentExpiry.iso,
-      price: durationMonths === 12 ? 120 : durationMonths === 6 ? 75 : 45,
-    });
+    try {
+      await addCustomer({
+        name: name.trim(),
+        fullName: name.trim(),
+        phone: phone.trim(),
+        email: email.trim() || `${name.toLowerCase().replace(/\s+/g, ".")}@email.com`,
+        planName: "TV Subscription",
+        durationMonths,
+        startDate,
+        expiryDate: currentExpiry.iso,
+        price: durationMonths === 12 ? 120 : durationMonths === 6 ? 75 : 45,
+      });
 
-    success("Customer added successfully", `${name} · ${phone}`);
-    navigate("/customers");
+      success("Customer added successfully", `${name} · ${phone}`);
+      navigate("/customers");
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || "Could not save customer. Please try again.";
+      error("Could not save customer", msg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
